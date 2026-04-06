@@ -1350,6 +1350,8 @@ function retreat() {
 }
 
 document.addEventListener('keydown', e => {
+  // Don't navigate while password gate is showing
+  if (!document.getElementById('password-gate').classList.contains('hidden')) return;
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
     advance();
@@ -1377,7 +1379,10 @@ function checkGate() {
 }
 
 document.getElementById('gate-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') checkGate();
+  if (e.key === 'Enter') {
+    e.stopPropagation();
+    checkGate();
+  }
 });
 
 // Initialize — don't show presentation until gate is passed
