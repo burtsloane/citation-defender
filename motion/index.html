@@ -664,6 +664,7 @@ const GATE_CODE = 'defender';
 function checkGate() {
   const input = document.getElementById('gate-input');
   if (input.value.toLowerCase().trim() === GATE_CODE) {
+    sessionStorage.setItem('cd_access', '1');
     document.getElementById('password-gate').classList.add('hidden');
     showStep(0);
   } else {
@@ -678,7 +679,12 @@ document.getElementById('gate-input').addEventListener('keydown', e => {
 });
 
 document.getElementById('fork-drops').style.opacity = '0';
-document.getElementById('gate-input').focus();
+if (sessionStorage.getItem('cd_access') === '1') {
+  document.getElementById('password-gate').classList.add('hidden');
+  showStep(0);
+} else {
+  document.getElementById('gate-input').focus();
+}
 </script>
 
 </body>

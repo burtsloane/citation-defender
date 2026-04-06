@@ -531,6 +531,7 @@ const GATE_CODE = 'defender';
 function checkGate() {
   const input = document.getElementById('gate-input');
   if (input.value.toLowerCase().trim() === GATE_CODE) {
+    sessionStorage.setItem('cd_access', '1');
     document.getElementById('password-gate').classList.add('hidden');
     document.getElementById('main-content').classList.add('visible');
   } else {
