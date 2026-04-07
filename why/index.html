@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Defender — Why This Matters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e1a;
+    --bg-raised: #12152a;
+    --bg-card: #161937;
+    --border: #252a4a;
+    --border-subtle: #1e2240;
+    --text: #d8dae6;
+    --text-dim: #8b90b4;
+    --text-bright: #f0f1f7;
+    --serif: 'Cormorant Garamond', 'Georgia', serif;
+    --mono: 'JetBrains Mono', 'Menlo', monospace;
+    --gold: #e2b714;
+    --blue: #60a5fa;
+    --green: #4ade80;
+    --red: #e94560;
+    --amber: #f59e0b;
+    --yellow: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--serif);
+    font-size: 16px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(rgba(37, 42, 74, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37, 42, 74, 0.12) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── PASSWORD GATE ─────────────────────── */
+  #password-gate { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; padding: 32px; }
+  #password-gate.hidden { display: none; }
+  #password-gate h1 { font-family: var(--serif); font-size: 42px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+  #password-gate .subtitle { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 40px; }
+  #password-gate .gate-form { display: flex; gap: 12px; align-items: center; }
+  #password-gate input { font-family: var(--mono); font-size: 15px; padding: 10px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text-bright); outline: none; width: 240px; }
+  #password-gate input:focus { border-color: var(--gold); }
+  #password-gate input.shake { animation: shake 0.4s ease; border-color: var(--red); }
+  #password-gate button { font-family: var(--mono); font-size: 13px; font-weight: 600; padding: 10px 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
+  #password-gate button:hover { border-color: var(--gold); color: var(--text-bright); }
+  #password-gate .gate-hint { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 16px; }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-4px); } }
+
+  /* ── MAIN ───────────────────────────────── */
+  #main-content { display: none; position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 40px 32px 80px; }
+  #main-content.visible { display: block; }
+
+  .back-link { font-family: var(--mono); font-size: 12px; color: var(--text-dim); text-decoration: none; display: inline-block; margin-bottom: 32px; }
+  .back-link:hover { color: var(--text-bright); }
+
+  /* ── HEADER ─────────────────────────────── */
+  .header { text-align: center; margin-bottom: 48px; }
+  .header h1 { font-family: var(--serif); font-size: clamp(28px, 4vw, 42px); font-weight: 700; color: var(--text-bright); margin-bottom: 12px; }
+  .header .subtitle { font-size: 18px; color: var(--text); font-style: italic; margin-bottom: 8px; }
+  .header .case-ref { font-family: var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 1px; }
+
+  /* ── DUAL TIMELINE ─────────────────────── */
+  .timeline-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+  .timeline-column { position: relative; }
+  .timeline-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+  }
+  .timeline-title.actual {
+    color: var(--red);
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+  }
+  .timeline-title.defended {
+    color: var(--green);
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+  }
+
+  /* Vertical line */
+  .timeline-column::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 60px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-event {
+    position: relative;
+    padding: 0 0 24px 44px;
+  }
+  /* Dot */
+  .timeline-event::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    z-index: 1;
+  }
+  .timeline-event.bad::before { border-color: var(--red); background: rgba(233, 69, 96, 0.2); }
+  .timeline-event.good::before { border-color: var(--green); background: rgba(74, 222, 128, 0.2); }
+  .timeline-event.neutral::before { border-color: var(--text-dim); }
+  .timeline-event.warn::before { border-color: var(--yellow); background: rgba(251, 191, 36, 0.2); }
+  .timeline-event.catastrophe::before { border-color: var(--red); background: var(--red); }
+
+  .event-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .event-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .event-detail {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .event-detail strong { color: var(--text-bright); }
+  .event-detail .red { color: var(--red); font-weight: 600; }
+  .event-detail .green { color: var(--green); font-weight: 600; }
+  .event-detail .yellow { color: var(--yellow); font-weight: 600; }
+
+  .time-saved {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 16px;
+    border-radius: 6px;
+    margin-top: 12px;
+  }
+  .time-saved.bad { color: var(--red); background: rgba(233, 69, 96, 0.08); border: 1px solid rgba(233, 69, 96, 0.2); }
+  .time-saved.good { color: var(--green); background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.2); }
+
+  /* ── STATS BAR ─────────────────────────── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-card .num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .stat-card .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── CLOSING ───────────────────────────── */
+  .closing {
+    text-align: center;
+    padding: 32px 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .closing blockquote {
+    font-family: var(--serif);
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600;
+    font-style: italic;
+    color: var(--text-bright);
+    line-height: 1.5;
+    max-width: 700px;
+    margin: 0 auto 20px;
+  }
+  .closing .note {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .timeline-container { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div id="password-gate">
+  <h1>Citation Defender</h1>
+  <div class="subtitle">Confidential Preview</div>
+  <div class="gate-form">
+    <input type="password" id="gate-input" placeholder="Access code" autocomplete="off">
+    <button onclick="checkGate()">Enter</button>
+  </div>
+  <div class="gate-hint">Contact presenter for access</div>
+</div>
+
+<div id="main-content">
+  <a href="./" class="back-link">&larr; Case Defender</a>
+
+  <div class="header">
+    <h1>Why Citation Defender Exists</h1>
+    <div class="subtitle">A 30-year attorney trusted ChatGPT. Six fake citations made it to a federal judge.</div>
+    <div class="case-ref">Mata v. Avianca, Inc., No. 22-cv-1461 (S.D.N.Y. 2023) &middot; Hon. P. Kevin Castel</div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num" style="color: var(--red);">6</div>
+      <div class="label">Fake Citations Filed</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color: var(--red);">113</div>
+      <div class="label">Days to Sanctions</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color: var(--amber);">$5,000</div>
+      <div class="label">Fine Imposed</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color: var(--red);">1,275+</div>
+      <div class="label">Sanctions Since</div>
+    </div>
+  </div>
+
+  <!-- Dual Timeline -->
+  <div class="timeline-container">
+
+    <!-- LEFT: What Actually Happened -->
+    <div class="timeline-column">
+      <div class="timeline-title actual">What Happened</div>
+
+      <div class="timeline-event neutral">
+        <div class="event-date">Early 2023</div>
+        <div class="event-title">Attorney Researches Opposition Brief</div>
+        <div class="event-detail">Steven Schwartz (30 years experience) uses <strong>ChatGPT</strong> to find cases supporting Mata's opposition to a forum non conveniens motion.</div>
+      </div>
+
+      <div class="timeline-event bad">
+        <div class="event-date">ChatGPT Responds</div>
+        <div class="event-title">Six Fabricated Citations Generated</div>
+        <div class="event-detail"><span class="red">Varghese v. China Southern, Shaboon v. Egyptair, Petersen v. Iran Air, Martinez v. Delta, Estate of Durden v. KLM, Miller v. United Airlines.</span> All plausible. All fake. Complete with fabricated quotes and internal citations.</div>
+      </div>
+
+      <div class="timeline-event bad">
+        <div class="event-date">Verification Attempt</div>
+        <div class="event-title">Schwartz Asks ChatGPT to Verify</div>
+        <div class="event-detail">ChatGPT <span class="red">confirms they are real</span>. The attorney never checks Westlaw or Lexis.</div>
+      </div>
+
+      <div class="timeline-event catastrophe">
+        <div class="event-date">March 1, 2023</div>
+        <div class="event-title">Brief Filed in Federal Court</div>
+        <div class="event-detail">Six nonexistent cases submitted to a federal judge. Attorney of record Peter LoDuca signs without independent verification.</div>
+      </div>
+
+      <div class="timeline-event bad">
+        <div class="event-date">Spring 2023</div>
+        <div class="event-title">Opposing Counsel Flags the Problem</div>
+        <div class="event-detail">Avianca's attorneys cannot locate any of the cited cases. They notify the court.</div>
+      </div>
+
+      <div class="timeline-event bad">
+        <div class="event-date">April 2023</div>
+        <div class="event-title">Judge Orders Copies of Citations</div>
+        <div class="event-detail">Judge Castel demands the attorneys produce copies of the cited cases.</div>
+      </div>
+
+      <div class="timeline-event catastrophe">
+        <div class="event-date">May 4, 2023</div>
+        <div class="event-title">Attorney Admits ChatGPT Was the Source</div>
+        <div class="event-detail">Schwartz files an affidavit admitting he used ChatGPT and that all six cases were fabricated by the AI.</div>
+      </div>
+
+      <div class="timeline-event catastrophe">
+        <div class="event-date">June 22, 2023</div>
+        <div class="event-title">Sanctions Imposed</div>
+        <div class="event-detail"><span class="red">$5,000 fine.</span> Required to notify real judges whose names appeared in fabricated opinions. Case described as "bogus judicial decisions with bogus quotes and bogus internal citations."</div>
+      </div>
+
+      <div class="time-saved bad">113 days from filing to sanctions<br>Careers damaged. Client harmed. Trust eroded.</div>
+    </div>
+
+    <!-- RIGHT: With Citation Defender -->
+    <div class="timeline-column">
+      <div class="timeline-title defended">With Citation Defender</div>
+
+      <div class="timeline-event neutral">
+        <div class="event-date">Early 2023</div>
+        <div class="event-title">Attorney Researches Opposition Brief</div>
+        <div class="event-detail">Attorney uses ChatGPT to find cases. Same starting point. Same workflow.</div>
+      </div>
+
+      <div class="timeline-event bad">
+        <div class="event-date">ChatGPT Responds</div>
+        <div class="event-title">Six Fabricated Citations Generated</div>
+        <div class="event-detail">Same six fake citations. Same plausible formatting. <span class="yellow">This is where the story changes.</span></div>
+      </div>
+
+      <div class="timeline-event good">
+        <div class="event-date">Before Filing</div>
+        <div class="event-title">Citation Defender Scans the Brief</div>
+        <div class="event-detail">All six citations run through three-level validation:<br>
+          <span class="red">&#10007; Varghese v. China Southern — NOT FOUND</span><br>
+          <span class="red">&#10007; Shaboon v. Egyptair — NOT FOUND</span><br>
+          <span class="red">&#10007; Petersen v. Iran Air — NOT FOUND</span><br>
+          <span class="red">&#10007; Martinez v. Delta — NOT FOUND</span><br>
+          <span class="red">&#10007; Estate of Durden v. KLM — NOT FOUND</span><br>
+          <span class="red">&#10007; Miller v. United Airlines — NOT FOUND</span>
+        </div>
+      </div>
+
+      <div class="timeline-event good">
+        <div class="event-date">Same Day</div>
+        <div class="event-title">Attorney Removes Fake Citations</div>
+        <div class="event-detail"><span class="green">All six flagged and removed before filing.</span> Attorney researches replacements using verified sources.</div>
+      </div>
+
+      <div class="timeline-event good">
+        <div class="event-date">March 1, 2023</div>
+        <div class="event-title">Clean Brief Filed</div>
+        <div class="event-detail">Brief filed with verified citations. <span class="green">Case proceeds on the merits.</span> No sanctions. No embarrassment. No harm to client.</div>
+      </div>
+
+      <div class="time-saved good">Caught before filing. Zero damage.<br>Cost: seconds. Savings: career, reputation, client trust.</div>
+    </div>
+
+  </div>
+
+  <!-- Closing -->
+  <div class="closing">
+    <blockquote>
+      "Mata v. Avianca was the warning shot. 1,275 sanctions later, existence checking became table stakes. Nobody solved what happens when the citation is real but still hurts your case."
+    </blockquote>
+    <div class="note">Citation Defender catches both: the fake ones and the dangerous real ones. &middot; Patent Pending</div>
+  </div>
+
+</div>
+
+<script>
+const GATE_CODE = 'defender';
+function checkGate() {
+  const input = document.getElementById('gate-input');
+  if (input.value.toLowerCase().trim() === GATE_CODE) {
+    localStorage.setItem('cd_access', '1');
+    document.getElementById('password-gate').classList.add('hidden');
+    document.getElementById('main-content').classList.add('visible');
+  } else {
+    input.classList.add('shake');
+    input.value = '';
+    input.placeholder = 'Try again';
+    setTimeout(() => input.classList.remove('shake'), 400);
+  }
+}
+document.getElementById('gate-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.stopPropagation(); checkGate(); }
+});
+if (localStorage.getItem('cd_access') === '1') {
+  document.getElementById('password-gate').classList.add('hidden');
+  document.getElementById('main-content').classList.add('visible');
+} else {
+  document.getElementById('gate-input').focus();
+}
+</script>
+
+</body>
+</html>
