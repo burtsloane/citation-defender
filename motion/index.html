@@ -618,7 +618,8 @@ function revealDiagram() {
     }, delay);
     delay += 150;
   });
-  setTimeout(() => { document.getElementById('fork-drops').style.opacity = '1'; }, 750);
+  var fd = document.getElementById('fork-drops');
+  if (fd) setTimeout(() => { fd.style.opacity = '1'; }, 750);
 }
 
 function animateCascade() {
@@ -664,7 +665,7 @@ const GATE_CODE = 'defender';
 function checkGate() {
   const input = document.getElementById('gate-input');
   if (input.value.toLowerCase().trim() === GATE_CODE) {
-    sessionStorage.setItem('cd_access', '1');
+    localStorage.setItem('cd_access', '1');
     document.getElementById('password-gate').classList.add('hidden');
     showStep(0);
   } else {
@@ -678,8 +679,9 @@ document.getElementById('gate-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.stopPropagation(); checkGate(); }
 });
 
-document.getElementById('fork-drops').style.opacity = '0';
-if (sessionStorage.getItem('cd_access') === '1') {
+var fd2 = document.getElementById('fork-drops');
+if (fd2) fd2.style.opacity = '0';
+if (localStorage.getItem('cd_access') === '1') {
   document.getElementById('password-gate').classList.add('hidden');
   showStep(0);
 } else {
